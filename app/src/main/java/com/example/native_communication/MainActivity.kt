@@ -1,9 +1,6 @@
 package com.example.native_communication
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,19 +12,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.commit
 import com.example.native_communication.ui.theme.Native_communicationTheme
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
+        setContentView(com.example.native_communication.R.layout.activity_main) // Ensure you have a container in activity_main.xml
+
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                replace(R.id.fragment_container, MainFragment())
+            }
+        }
+    }
+}
+
+class MainFragment : Fragment(R.layout.fragment_main) {
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val composeView = view.findViewById<androidx.compose.ui.platform.ComposeView>(R.id.compose_view)
+        composeView.setContent {
             Native_communicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(modifier = Modifier.padding(innerPadding).fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Column(
+                        modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(text = "Flutter Activity")
 
                         MyButton(onClick = {
@@ -36,25 +53,21 @@ class MainActivity : ComponentActivity() {
                                 val channel = MethodChannel(it.dartExecutor.binaryMessenger, "com.globalBank.module/nativeCommunication")
                                 val payload = mapOf(
                                     "csId" to "R011032880",
-                                    "token" to "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYjJiOTE1OTktNjI0NC00Y2EzLTg5ZTktYTczMjdjNTgzN2UxIiwidHlwZSI6IkMiLCJjb3Jwb3JhdGUiOiIwIiwiY2hhbm5lbCI6IjEiLCJpcCI6IjEwMy4xODAuMjQwLjE4MiIsImJyb3dzZXJOYW1lQyI6Ik1vYmlsZSBDaHJvbWUiLCJicm93c2VyVmVyc2lvbkMiOiIxMzMuMC4wLjAiLCJvc05hbWUiOiJBbmRyb2lkIiwib3NWZXJzaW9uIjoiNi4wIiwiZGV2aWNlSWRlbnRpZmllciI6IjZiZjFiNjE1LTVkMDktNDg1Yy05YmEyLTFkYjc2M2MyZTAwNiIsImlhdCI6MTc1NjM2NzQwNywiZXhwIjoxNzU2NjI2NjA3fQ.5B1IkTjc4zxX49gIzQzFcrx4c63J8SSmGjCtDlEg3tPPGl08cyyWcEuAqPyXPQVtS2XsG3-XmyR6fgW-KrAsog"
+                                    "token" to "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYjJiOTE1OTktNjI0NC00Y2EzLTg5ZTktYTczMjdjNTgzN2UxIiwidHlwZSI6IkMiLCJjb3Jwb3JhdGUiOiIwIiwiY2hhbm5lbCI6IjEiLCJpcCI6IjEwMy4xODAuMjQwLjE4MiIsImJyb3dzZXJOYW1lQyI6Ik1vYmlsZSBDaHJvbWUiLCJicm93c2VyVmVyc2lvbkMiOiIxMzMuMC4wLjAiLCJvc05hbWUiOiJBbmRyb2lkIiwib3NWZXJzaW9uIjoiNi4wIiwiZGV2aWNlSWRlbnRpZmllciI6IjZiZjFiNjE1LTVkMDktNDg1Yy05YmEyLTFkYjc2M2MyZTAwNiIsImlhdCI6MTc1NjM2OTA5NSwiZXhwIjoxNzU2NjI4Mjk1fQ.0gaUvWm7o3Bh5AtUo0NqB6sQnGDgj94d0l08OM1_7W_VYaqju2MSTG4OP5fZ9Nt7eNuN7tzQhY4czHm-OCp6rg"
                                 )
                                 channel.invokeMethod("UserCredentials", payload)
                             }
 
-
                             startActivity(
-                                FlutterActivity.withCachedEngine("cached_engine").build(this@MainActivity)
+                                FlutterActivity.withCachedEngine("cached_engine").build(requireContext())
                             )
                         })
-
-
                     }
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun MyButton(onClick: () -> Unit) {
